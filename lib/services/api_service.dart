@@ -18,4 +18,22 @@ class ApiService {
       throw Exception(jsonDecode(response.body)['message']);
     }
   }
+
+  // 🔽 Kullanıcının yüklediği medyaları getir
+  Future<List<dynamic>> fetchUserUploads(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/my-uploads'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['uploads']; // upload listesi
+    } else {
+      throw Exception("Yüklemeler alınamadı");
+    }
+  }
 }

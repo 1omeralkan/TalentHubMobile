@@ -105,6 +105,25 @@ class _DashboardPageState extends State<DashboardPage> {
                   const SizedBox(height: 8),
                   Text("📧 Email: $email",
                       style: const TextStyle(fontSize: 18)),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/upload');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 14),
+                      backgroundColor: const Color.fromARGB(255, 254, 254, 254),
+                    ),
+                    child: const Text("📤 Yetenek Yükle",
+                        style: TextStyle(fontSize: 16)),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/profile');
+                    },
+                    child: const Text("Profilim"),
+                  ),
                 ],
               ),
             ),
