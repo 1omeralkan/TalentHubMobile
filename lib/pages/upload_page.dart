@@ -20,13 +20,9 @@ class _UploadPageState extends State<UploadPage> {
 
   Future<void> _pickMedia() async {
     final picker = ImagePicker();
-    final picked = await picker.pickImage(
-        source: ImageSource.gallery); // İsteğe bağlı: ImageSource.camera
-
+    final picked = await picker.pickImage(source: ImageSource.gallery);
     if (picked != null) {
-      setState(() {
-        _file = File(picked.path);
-      });
+      setState(() => _file = File(picked.path));
     }
   }
 
@@ -39,7 +35,6 @@ class _UploadPageState extends State<UploadPage> {
     }
 
     setState(() => isLoading = true);
-
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
 
@@ -51,8 +46,8 @@ class _UploadPageState extends State<UploadPage> {
     request.fields['caption'] = _captionController.text;
 
     final response = await request.send();
-    final responseBody = await response.stream.bytesToString();
-    final data = json.decode(responseBody);
+    final body = await response.stream.bytesToString();
+    final data = json.decode(body);
 
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -73,40 +68,83 @@ class _UploadPageState extends State<UploadPage> {
 
   @override
   Widget build(BuildContext context) {
+    const Color primary = Color(0xFF00E0E0);
+    const Color accent = Color(0xFFFF2C5D);
+    const Color textColor = Color(0xFF212530);
+    const Color background = Color(0xFFF0F0F0);
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Yetenek Yükle")),
+      backgroundColor: background,
+      appBar: AppBar(
+        title: const Text("Yetenek Yükle", style: TextStyle(color: textColor)),
+        centerTitle: true,
+        backgroundColor: primary,
+        iconTheme: const IconThemeData(color: textColor),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            ElevatedButton(
-              onPressed: _pickMedia,
-              child: const Text("📂 Dosya Seç"),
-            ),
-            if (_file != null) ...[
-              const SizedBox(height: 16),
-              Image.file(_file!, height: 150),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _pickMedia,
+                icon: const Icon(Icons.folder_open),
+                label: const Text("Dosya Seç"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primary,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 14, horizontal: 32),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                ),
+              ),
+              if (_file != null) ...[
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.file(
+                    _file!,
+                    height: 180,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 20),
+              TextField(
+                controller: _captionController,
+                decoration: InputDecoration(
+                  labelText: "Yetenek açıklaması giriniz...",
+                  alignLabelWithHint: true,
+                  labelStyle: const TextStyle(color: textColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  fillColor: Colors.white,
+                  filled: true,
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: isLoading ? null : _upload,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 32),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30)),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("🚀 Gönder"),
+                ),
+              ),
             ],
-            const SizedBox(height: 16),
-            TextField(
-              controller: _captionController,
-              decoration: const InputDecoration(
-                labelText: "Açıklama",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : _upload,
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("🚀 Gönder"),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

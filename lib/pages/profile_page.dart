@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -50,9 +51,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   bool isImage(String url) {
-    final imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     final ext = url.split('.').last.toLowerCase();
-    return imageExtensions.contains(ext);
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp'].contains(ext);
+  }
+
+  bool isVideo(String url) {
+    final ext = url.split('.').last.toLowerCase();
+    return ['mp4', 'mov', 'avi', 'mkv'].contains(ext);
   }
 
   @override
@@ -101,11 +106,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                     fit: BoxFit.cover,
                                   ),
                                 )
+                              else if (isVideo(mediaUrl))
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(12)),
+                                  child: SizedBox(
+                                    height: 250,
+                                    width: double.infinity,
+                                    child:
+                                        VideoPlayerWidget(videoUrl: mediaUrl),
+                                  ),
+                                )
                               else
                                 const Padding(
                                   padding: EdgeInsets.all(16),
-                                  child: Text("🎞 Dosya bir görsel değil",
-                                      style: TextStyle(fontSize: 16)),
+                                  child: Text("🎞 Dosya önizlemesi yok"),
                                 ),
                               Padding(
                                 padding: const EdgeInsets.all(12),
@@ -120,6 +135,69 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ],
               ),
             ),
+    );
+  }
+}
+
+// ✅ Video gösterimi için ayrı widget
+class VideoPlayerWidget extends StatefulWidget {
+  final String videoUrl;
+
+  const VideoPlayerWidget({super.key, required this.videoUrl});
+
+  @override
+  State<VideoPlayerWidget> createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  late VideoPlayerController _controller;
+  bool _isInitialized = false;
+  bool _hasError = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.network(widget.videoUrl);
+
+    _controller.initialize().then((_) {
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+        _controller.setLooping(true);
+        _controller.play();
+      }
+    }).catchError((e) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_hasError) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Text("⚠️ Video yüklenemedi"),
+      );
+    }
+
+    if (!_isInitialized) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return AspectRatio(
+      aspectRatio: _controller.value.aspectRatio,
+      child: VideoPlayer(_controller),
     );
   }
 }

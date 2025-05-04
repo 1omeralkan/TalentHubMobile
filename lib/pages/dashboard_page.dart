@@ -13,9 +13,6 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  String? fullName;
-  String? userName;
-  String? email;
   String? message;
   bool isLoading = true;
 
@@ -29,10 +26,8 @@ class _DashboardPageState extends State<DashboardPage> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
-    print("📦 Token ne geldi: $token");
-
     if (token == null) {
-      _logout(); // Token yoksa login’e yönlendir
+      _logout();
       return;
     }
 
@@ -44,21 +39,16 @@ class _DashboardPageState extends State<DashboardPage> {
 
       if (res.statusCode == 200) {
         final data = json.decode(res.body);
-        final user = data["user"];
-
         setState(() {
-          fullName = user["fullName"] ?? "-";
-          userName = user["userName"] ?? "-";
-          email = user["email"] ?? "-";
           message = data["message"] ?? "Hoş geldin!";
           isLoading = false;
         });
       } else {
-        _logout(); // Token geçersizse logout
+        _logout();
       }
     } catch (e) {
       debugPrint("❌ Hata: $e");
-      _logout(); // Hata olursa logout
+      _logout();
     }
   }
 
@@ -75,10 +65,33 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    const primaryColor = Color(0xFF00E0E0); // Turkuaz
+    const accentColor = Color(0xFFFF2C5D); // Pembe
+    const darkText = Color(0xFF212530); // Koyu gri metin
+    const lightBackground = Color(0xFFF0F0F0); // Arka plan
+
     return Scaffold(
-      backgroundColor: Colors.deepPurple[50],
+      backgroundColor: lightBackground,
       appBar: AppBar(
-        title: const Text("Dashboard"),
+        backgroundColor: primaryColor,
+        elevation: 0,
+        title: const Text(
+          "TalentHub",
+          style: TextStyle(color: darkText),
+        ),
+        iconTheme: const IconThemeData(color: darkText),
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12),
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, '/profile');
+            },
+            child: const CircleAvatar(
+              radius: 20,
+              backgroundImage: AssetImage("assets/user.png"),
+            ),
+          ),
+        ),
         actions: [
           IconButton(
             onPressed: _logout,
@@ -88,44 +101,77 @@ class _DashboardPageState extends State<DashboardPage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("👋 $message",
-                      style: const TextStyle(
-                          fontSize: 22, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 24),
-                  Text("👤 Ad Soyad: $fullName",
-                      style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text("📛 Kullanıcı Adı: @$userName",
-                      style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 8),
-                  Text("📧 Email: $email",
-                      style: const TextStyle(fontSize: 18)),
-                  const SizedBox(height: 32),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/upload');
-                    },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 14),
-                      backgroundColor: const Color.fromARGB(255, 254, 254, 254),
+          : Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          "👋 $message",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: darkText,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      Expanded(
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.shade300,
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              "🧭 Keşfet Alanı - Yakında!",
+                              style: TextStyle(fontSize: 16, color: darkText),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  bottom: 30,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/upload');
+                      },
+                      icon: const Icon(Icons.upload),
+                      label: const Text("Yetenek Yükle"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 6,
+                        shadowColor: const Color.fromARGB(255, 0, 0, 0),
+                      ),
                     ),
-                    child: const Text("📤 Yetenek Yükle",
-                        style: TextStyle(fontSize: 16)),
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/profile');
-                    },
-                    child: const Text("Profilim"),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
     );
   }
