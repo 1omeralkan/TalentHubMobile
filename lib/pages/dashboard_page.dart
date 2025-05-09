@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'login_page.dart';
+import 'discover_swipe_widget.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -80,18 +81,6 @@ class _DashboardPageState extends State<DashboardPage> {
           style: TextStyle(color: darkText),
         ),
         iconTheme: const IconThemeData(color: darkText),
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 12),
-          child: GestureDetector(
-            onTap: () {
-              Navigator.pushNamed(context, '/profile');
-            },
-            child: const CircleAvatar(
-              radius: 20,
-              backgroundImage: AssetImage("assets/user.png"),
-            ),
-          ),
-        ),
         actions: [
           IconButton(
             onPressed: _logout,
@@ -135,44 +124,45 @@ class _DashboardPageState extends State<DashboardPage> {
                               ),
                             ],
                           ),
-                          child: const Center(
-                            child: Text(
-                              "🧭 Keşfet Alanı - Yakında!",
-                              style: TextStyle(fontSize: 16, color: darkText),
-                            ),
-                          ),
+                          child: DiscoverSwipeWidget(),
                         ),
                       ),
                     ],
                   ),
                 ),
-                Positioned(
-                  bottom: 30,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/upload');
-                      },
-                      icon: const Icon(Icons.upload),
-                      label: const Text("Yetenek Yükle"),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 6,
-                        shadowColor: const Color.fromARGB(255, 0, 0, 0),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        selectedItemColor: accentColor,
+        unselectedItemColor: Colors.grey[600],
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Ara',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_box_rounded, size: 32),
+            label: 'Yükle',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profil',
+          ),
+        ],
+        onTap: (index) {
+          if (index == 0) {
+            // Arama/keşfet için ileride bir sayfa eklenebilir
+          } else if (index == 1) {
+            Navigator.pushNamed(context, '/upload');
+          } else if (index == 2) {
+            Navigator.pushNamed(context, '/profile');
+          }
+        },
+      ),
     );
   }
 }
