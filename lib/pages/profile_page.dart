@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
+import 'package:talenthub_mobilee/services/api_service.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -22,6 +23,28 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   void initState() {
     super.initState();
     fetchUserUploads();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _refreshUserInfo();
+  }
+
+  Future<void> _refreshUserInfo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString("token");
+    if (token != null) {
+      final userInfo = await ApiService().fetchUserInfo(token);
+      if (userInfo != null && mounted) {
+        ref.read(userProvider.notifier).state = userInfo;
+        print('userProvider: ' + userInfo.toString());
+        print('Profil fotoğrafı URL: ' +
+            (userInfo['profilePhotoUrl'] != null
+                ? '${dotenv.env['API_BASE_URL']}${userInfo['profilePhotoUrl']}?v=${DateTime.now().millisecondsSinceEpoch}'
+                : 'YOK'));
+      }
+    }
   }
 
   Future<void> fetchUserUploads() async {
@@ -78,6 +101,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     const Color background = Color(0xFFF0F0F0);
 
     final user = ref.watch(userProvider);
+    print("userProvider içeriği: $user");
 
     return Scaffold(
       backgroundColor: background,
@@ -114,11 +138,22 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Profil fotoğrafı baloncuğu
-                        CircleAvatar(
-                          radius: 38,
-                          backgroundColor: primary.withOpacity(0.15),
-                          child: const Icon(Icons.person,
-                              size: 44, color: Color(0xFFB0B0B0)),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushNamed(context, '/edit-profile');
+                          },
+                          child: CircleAvatar(
+                            radius: 38,
+                            backgroundColor: primary.withOpacity(0.15),
+                            backgroundImage: user?['profilePhotoUrl'] != null
+                                ? NetworkImage(
+                                    '${dotenv.env['API_BASE_URL']}${user!['profilePhotoUrl']}?v=${DateTime.now().millisecondsSinceEpoch}')
+                                : null,
+                            child: user?['profilePhotoUrl'] == null
+                                ? const Icon(Icons.person,
+                                    size: 44, color: Color(0xFFB0B0B0))
+                                : null,
+                          ),
                         ),
                         const SizedBox(width: 28),
                         // Gönderi, Takipçi, Takip

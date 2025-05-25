@@ -9,6 +9,7 @@ import 'package:talenthub_mobilee/pages/reset_password_page.dart'; // ✅ yeni s
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talenthub_mobilee/pages/upload_page.dart';
 import 'package:talenthub_mobilee/pages/profile_page.dart';
+import 'package:talenthub_mobilee/pages/edit_profile_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         '/forgot-password': (context) => const ForgotPasswordPage(),
         '/upload': (context) => const UploadPage(),
         '/profile': (context) => const ProfilePage(),
+        '/edit-profile': (context) => const EditProfilePage(),
         '/reset-password': (context) {
           final token = Uri.base.queryParameters['token'];
           return token == null

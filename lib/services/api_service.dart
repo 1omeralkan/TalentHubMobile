@@ -36,4 +36,17 @@ class ApiService {
       throw Exception("Yüklemeler alınamadı");
     }
   }
+
+  Future<Map<String, dynamic>?> fetchUserInfo(String token) async {
+    print('fetchUserInfo çağrıldı, token: ' + token);
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/me'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    print('API /me response: ${response.statusCode} - ${response.body}');
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['user'];
+    }
+    return null;
+  }
 }

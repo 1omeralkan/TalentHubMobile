@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dashboard_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:talenthub_mobilee/providers/auth_provider.dart';
+import 'package:talenthub_mobilee/services/api_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -46,12 +47,19 @@ class _LoginPageState extends State<LoginPage> {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', body["token"]);
 
+        print('TOKEN: ' + body["token"]);
+
+        // Kullanıcı bilgisi çek ve userProvider'a set et
+        final apiService = ApiService();
+        final userInfo = await apiService.fetchUserInfo(body["token"]);
+        final container = ProviderScope.containerOf(context);
+        container.read(userProvider.notifier).state = userInfo;
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Giriş başarılı: ${body["user"]["email"]}")),
+          SnackBar(
+              content: Text("Giriş başarılı: " + (userInfo?["email"] ?? ""))),
         );
 
-        final container = ProviderScope.containerOf(context);
-        container.read(userProvider.notifier).state = body["user"];
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const DashboardPage()),
